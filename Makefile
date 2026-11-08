@@ -13,7 +13,7 @@ help:
 	@echo "make smoke          every mode on synthetic data (~5-10 min)"
 	@echo "make testbed-up     build and start the 12 hosts + c2-server"
 	@echo "make testbed-down   stop the testbed"
-	@echo "make testbed-status list running testbed containers"
+	@echo "make testbed-status check all 13 containers from outside (scripts/testbed.py status)"
 	@echo "make compose-check  validate testbed/docker-compose.yml"
 
 install:
@@ -40,13 +40,14 @@ smoke:
 	else echo "No smoke test yet: it is rebuilt with the FL core in Sprint 5."; fi
 
 testbed-up:
+	mkdir -p testbed/control       # must exist (and be yours) before Docker would create it as root
 	cd testbed && docker compose up -d --build
 
 testbed-down:
 	cd testbed && docker compose down
 
 testbed-status:
-	docker ps --filter "name=fs-" --filter "name=c2-server" --format '{{.Names}}\t{{.Status}}' | sort
+	$(PY) scripts/testbed.py status
 
 compose-check:
 	cd testbed && docker compose config --quiet && echo "docker-compose.yml is valid"
