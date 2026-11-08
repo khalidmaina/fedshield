@@ -1,0 +1,45 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # The job name "checks" is the required status check that protects main.
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install PyTorch (CPU) and libraries
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt -r requirements-dev.txt
+          pip install -e . --no-deps
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Unit tests
+        run: python -m pytest
+
+      - name: Quick smoke test (synthetic data)
+        run: python tests/smoke_test.py --quick
+
+      - name: Validate testbed compose file
+        run: cd testbed && docker compose config --quiet
