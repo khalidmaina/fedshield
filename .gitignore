@@ -27,3 +27,5 @@ thesis/**/*.toc
 *.swp
 .DS_Store
 *.log
+# Testbed attack control (requests and status reports, written at run time)
+testbed/control/

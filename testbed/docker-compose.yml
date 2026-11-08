@@ -1,0 +1,102 @@
+# FedShield testbed: 12 simulated hosts (4 roles x 3 intensities) + 1 lab c2-server.
+#   make testbed-up      (creates testbed/control/ first, then: docker compose up -d --build)
+#   make testbed-status  (checks every host from outside, without running anything inside)
+#   make testbed-down
+#
+# Each role runs at intensity 1, 2 and 3 once, so hosts of the same role still differ
+# (non-IID data). Hosts have no Docker HEALTHCHECK on purpose: it would run commands inside
+# the host, and the collector would record them as host activity (decision 0005).
+
+x-host: &host
+  build: ./host
+  image: fedshield-host:s1
+  init: true                       # tini as PID 1: forwards signals, reaps zombies
+  volumes:
+    - ./attacks:/attacks:ro
+    - ./control:/control           # attack requests in, status.jsonl out (one folder per host)
+  restart: unless-stopped
+  mem_limit: 256m
+  cpus: 0.5
+  networks: [fsnet]
+
+services:
+  fs-web-1:
+    <<: *host
+    hostname: fs-web-1
+    container_name: fs-web-1
+    environment: {ROLE: web, INTENSITY: "1", PEER: fs-web-2}
+  fs-web-2:
+    <<: *host
+    hostname: fs-web-2
+    container_name: fs-web-2
+    environment: {ROLE: web, INTENSITY: "2", PEER: fs-web-3}
+  fs-web-3:
+    <<: *host
+    hostname: fs-web-3
+    container_name: fs-web-3
+    environment: {ROLE: web, INTENSITY: "3", PEER: fs-web-1}
+
+  fs-db-1:
+    <<: *host
+    hostname: fs-db-1
+    container_name: fs-db-1
+    environment: {ROLE: db, INTENSITY: "1"}
+  fs-db-2:
+    <<: *host
+    hostname: fs-db-2
+    container_name: fs-db-2
+    environment: {ROLE: db, INTENSITY: "2"}
+  fs-db-3:
+    <<: *host
+    hostname: fs-db-3
+    container_name: fs-db-3
+    environment: {ROLE: db, INTENSITY: "3"}
+
+  fs-build-1:
+    <<: *host
+    hostname: fs-build-1
+    container_name: fs-build-1
+    environment: {ROLE: build, INTENSITY: "1"}
+  fs-build-2:
+    <<: *host
+    hostname: fs-build-2
+    container_name: fs-build-2
+    environment: {ROLE: build, INTENSITY: "2"}
+  fs-build-3:
+    <<: *host
+    hostname: fs-build-3
+    container_name: fs-build-3
+    environment: {ROLE: build, INTENSITY: "3"}
+
+  fs-dev-1:
+    <<: *host
+    hostname: fs-dev-1
+    container_name: fs-dev-1
+    environment: {ROLE: dev, INTENSITY: "1"}
+  fs-dev-2:
+    <<: *host
+    hostname: fs-dev-2
+    container_name: fs-dev-2
+    environment: {ROLE: dev, INTENSITY: "2"}
+  fs-dev-3:
+    <<: *host
+    hostname: fs-dev-3
+    container_name: fs-dev-3
+    environment: {ROLE: dev, INTENSITY: "3"}
+
+  c2-server:
+    image: fedshield-host:s1
+    hostname: c2-server
+    container_name: c2-server
+    init: true
+    entrypoint: ["python3", "/c2/c2.py"]
+    volumes:
+      - ./c2:/c2:ro
+    restart: unless-stopped
+    mem_limit: 128m
+    networks: [fsnet]
+    depends_on: [fs-web-1]         # fs-web-1 builds the shared image first
+
+networks:
+  fsnet:
+    driver: bridge
