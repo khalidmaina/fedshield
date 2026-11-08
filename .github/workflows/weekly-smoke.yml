@@ -1,6 +1,7 @@
 name: weekly-smoke
 
 # Full smoke test (every mode) once a week and on demand from the Actions tab.
+# Skips itself until tests/smoke_test.py exists again (Sprint 5).
 on:
   schedule:
     - cron: "17 3 * * 1"   # Mondays 03:17 UTC
@@ -11,8 +12,9 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        if: hashFiles('tests/smoke_test.py') != ''
         with:
           python-version: "3.12"
           cache: pip
@@ -20,9 +22,11 @@ jobs:
             requirements.txt
             requirements-dev.txt
       - name: Install PyTorch (CPU) and libraries
+        if: hashFiles('tests/smoke_test.py') != ''
         run: |
           python -m pip install --upgrade pip
           pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
           pip install -r requirements.txt
       - name: Full smoke test
+        if: hashFiles('tests/smoke_test.py') != ''
         run: python tests/smoke_test.py

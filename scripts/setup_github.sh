@@ -6,11 +6,22 @@
 #   ./scripts/setup_github.sh                 # labels + milestones
 #   ./scripts/setup_github.sh --protect       # also protect main (run AFTER the first CI run)
 # Safe to run again: existing labels are updated, existing milestones are skipped.
+# Uses only GitHub's REST API (gh api), so it also works where GraphQL is unavailable.
 set -e
-REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
+# owner/repo from the origin remote (git@github.com:owner/repo.git or https://github.com/owner/repo)
+REPO="$(git remote get-url origin | sed -E 's#^(git@github\.com:|https://github\.com/)##; s#\.git$##')"
 echo "Setting up $REPO"
 
-label() { gh label create "$1" --color "$2" --description "$3" --force >/dev/null && echo "  label $1"; }
+urlencode() { python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$1"; }
+
+label() {
+  if gh api "repos/$REPO/labels" -f name="$1" -f color="$2" -f description="$3" >/dev/null 2>&1; then
+    echo "  created $1"
+  else
+    gh api -X PATCH "repos/$REPO/labels/$(urlencode "$1")" -f color="$2" -f description="$3" >/dev/null
+    echo "  updated $1"
+  fi
+}
 
 echo "Labels:"
 # type

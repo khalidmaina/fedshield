@@ -32,10 +32,12 @@ test:
 	$(PY) -m pytest
 
 smoke-quick:
-	$(PY) tests/smoke_test.py --quick
+	@if [ -f tests/smoke_test.py ]; then $(PY) tests/smoke_test.py --quick; \
+	else echo "No smoke test yet: it is rebuilt with the FL core in Sprint 5."; fi
 
 smoke:
-	$(PY) tests/smoke_test.py
+	@if [ -f tests/smoke_test.py ]; then $(PY) tests/smoke_test.py; \
+	else echo "No smoke test yet: it is rebuilt with the FL core in Sprint 5."; fi
 
 testbed-up:
 	cd testbed && docker compose up -d --build

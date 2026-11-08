@@ -32,3 +32,4 @@ What this makes easier, what it costs, what the thesis must state.
 | 0001 | Native Ubuntu 24.04 with Docker Compose | accepted |
 | 0002 | Simulated federated learning with two regions of six | accepted |
 | 0003 | Attack rotation and number of sessions | proposed (decide in Sprint 3) |
+| 0004 | Rebuild module by module; reference code at tag `reference-v0` | accepted |
