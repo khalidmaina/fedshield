@@ -1,9 +1,9 @@
 """Sparse autoencoder, Isolation Forest and the hybrid detector."""
 import numpy as np
 import torch
-from torch import nn
 from sklearn.ensemble import IsolationForest
 from sklearn.metrics import average_precision_score
+from torch import nn
 
 
 class SAE(nn.Module):

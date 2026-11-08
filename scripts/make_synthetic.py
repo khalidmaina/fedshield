@@ -59,7 +59,8 @@ def window(rng, role, inten, attack):
     x["exec_unique_paths"] = min(x["exec_count"], int(rng.poisson(3 + 0.3 * x["exec_count"])))
     x["open_unique_paths"] = min(x["open_count"], int(rng.poisson(0.4 * x["open_count"] + 1)))
     x["conn_unique_daddr"] = min(x["conn_count"], 1 + int(rng.poisson(0.2 * x["conn_count"]))) if x["conn_count"] else 0
-    x["conn_unique_dport"] = min(x["conn_count"], 1 + int(rng.poisson(0.3 * x["conn_uncommon_port"]))) if x["conn_count"] else 0
+    x["conn_unique_dport"] = (min(x["conn_count"], 1 + int(rng.poisson(0.3 * x["conn_uncommon_port"])))
+                              if x["conn_count"] else 0)
     x["unique_comm"] = min(x["exec_count"] + 2, 2 + int(rng.poisson(0.5 * x["exec_count"])))
     return x
 

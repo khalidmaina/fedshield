@@ -128,8 +128,10 @@ def load_cicids(cfg):
             part = parts[k]
             a1, a2 = int(0.4 * len(part)), int(0.6 * len(part))
             pool[name] = part[:a1]
-            av_x.append(part[a1:a2]); av_a += [name] * (a2 - a1)
-            at_x.append(part[a2:]); at_a += [name] * (len(part) - a2)
+            av_x.append(part[a1:a2])
+            av_a += [name] * (a2 - a1)
+            at_x.append(part[a2:])
+            at_a += [name] * (len(part) - a2)
         Xv_all = np.vstack([Xv] + av_x)
         Xt_all = np.vstack([Xt] + at_x)
         clients[f"client_{k:02d}"] = ClientData(

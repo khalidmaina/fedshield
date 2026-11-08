@@ -181,7 +181,6 @@ def run(cfg, run_dir=None, verbose=True):
     current_train = {c: clients[c].X_train for c in ids}
     frozen, log_rows, upd_log = {}, [], []
     T = int(fl["rounds"])
-    honest_set = set(ids) - set(byz)
 
     for t in range(1, T + 1):
         # participation
@@ -256,8 +255,10 @@ def run(cfg, run_dir=None, verbose=True):
                 excl.append(exclusion_metrics(mem, sel, byz))
                 g_pois = [c for c in mem if c in pois]
                 g_hon = [c for c in mem if c not in byz and c not in pois]
-                sel_pois += len(set(sel) & set(g_pois)); n_pois += len(g_pois)
-                sel_hon += len(set(sel) & set(g_hon)); n_hon += len(g_hon)
+                sel_pois += len(set(sel) & set(g_pois))
+                n_pois += len(g_pois)
+                sel_hon += len(set(sel) & set(g_hon))
+                n_hon += len(g_hon)
                 if g_pois:
                     camo.append(camouflage_ratio(released, g_hon, g_pois))
             global_vec = global_vec + np.average(np.stack(agg_parts), axis=0, weights=weights)
@@ -383,5 +384,6 @@ def run(cfg, run_dir=None, verbose=True):
         with open(os.path.join(run_dir, "final_metrics.json"), "w") as f:
             json.dump(summary, f, indent=2)
     if verbose:
-        print(json.dumps({k: summary[k] for k in ("sae_f1", "if_f1", "hybrid_f1", "hybrid_fpr", "epsilon_max")}, indent=None))
+        keys = ("sae_f1", "if_f1", "hybrid_f1", "hybrid_fpr", "epsilon_max")
+        print(json.dumps({k: summary[k] for k in keys}, indent=None))
     return summary
