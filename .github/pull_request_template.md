@@ -7,7 +7,8 @@ Closes #
 
 - [ ] `make lint` passes
 - [ ] `make test` passes (new logic has unit tests)
-- [ ] `make smoke-quick` passes
+- [ ] `make smoke-quick` passes (from Sprint 5, once the FL core exists)
+- [ ] Written by us: the reference code (tag `reference-v0`) was read, not copied (docs/decisions/0004)
 - [ ] Touches `testbed/` or `collector/`: matching manual check from `tests/integration/README.md` done on Linux
       (write what you ran and what you saw below)
 

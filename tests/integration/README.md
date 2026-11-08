@@ -2,7 +2,9 @@
 
 CI cannot run eBPF or the live testbed, so any pull request that touches `testbed/`, `collector/` or
 `fedshield/features.py` runs the matching check below on a real machine and writes the result in the PR.
-These checks become scripts in Sprints 1 and 2.
+These checks are the acceptance criteria for the testbed (T1, T3, T4, Sprint 1) and the collector (T2, Sprint 2);
+they become scripts as those modules are rebuilt. Commands use the reference file names and may change with our
+versions.
 
 ## T1 — Testbed comes up
 

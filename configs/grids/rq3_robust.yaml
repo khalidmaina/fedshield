@@ -1,9 +1,0 @@
-# RQ3: aggregation rules under update-level attacks. One Byzantine client per region.
-name: rq3_robust
-base: configs/base.yaml
-seeds: [1, 2, 3]
-fixed:
-  byzantine.clients: [fs-dev-1, fs-build-3]
-grid:
-  aggregation.rule: [fedavg, krum, multikrum]
-  byzantine.attack: [none, gaussian, signflip, scale, lie, minmax, replacement]

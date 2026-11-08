@@ -5,6 +5,9 @@ This repository realises them as a **testbed on one Linux machine**: 12 Docker c
 collector watches all of them through the shared kernel, and federated learning runs as a simulation in one Python
 process. Decision notes 0001 and 0002 explain why.
 
+This page is the **target design**. The modules are rebuilt one sprint at a time (decision 0004); the README's build
+status table shows what exists so far.
+
 ## System on one machine
 
 ```mermaid

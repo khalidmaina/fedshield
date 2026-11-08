@@ -57,6 +57,22 @@ make smoke-quick   # a few FL modes on synthetic data
 Changes to `testbed/` or `collector/` cannot be tested in CI (no eBPF, no live containers there).
 Run the matching check from `tests/integration/README.md` on your machine and tick it in the PR.
 
+## Using the reference code
+
+The original code is kept read-only at the tag `reference-v0`
+([browse](https://github.com/khalidmaina/fedshield/tree/reference-v0)); see
+[decision 0004](docs/decisions/0004-rebuild-from-scratch.md).
+
+```bash
+git fetch --tags
+git show reference-v0:fedshield/aggregation.py | less      # read one file
+git ls-tree -r --name-only reference-v0                     # list everything in it
+```
+
+- Read it, understand it, then write your own version. Never copy whole files or functions.
+- Fix the known issues from the review in the first version you write.
+- If your version differs on purpose, say why in the PR (and in a decision note if the design changes).
+
 ## Freeze points
 
 - **Collector freeze (end of Sprint 2):** after this, `collector/`, `fedshield/features.py`, `testbed/host/` and
