@@ -1,0 +1,10 @@
+<!-- FedShield rule: raise a Wazuh alert for every anomaly line written by
+     scripts/detect_live.py. Append this block to /var/ossec/etc/rules/local_rules.xml -->
+<group name="fedshield,">
+  <rule id="100200" level="10">
+    <decoded_as>json</decoded_as>
+    <field name="fedshield.type">^anomaly$</field>
+    <description>FedShield anomaly on $(fedshield.host): score $(fedshield.score) above $(fedshield.threshold)</description>
+    <group>fedshield_anomaly,</group>
+  </rule>
+</group>

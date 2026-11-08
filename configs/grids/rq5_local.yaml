@@ -1,0 +1,13 @@
+# RQ5 reference: without federation the poisoned model stays on the compromised host,
+# so the blind spot cannot spread. Compare with configs/grids/rq5_poison.yaml.
+name: rq5_local
+base: configs/base.yaml
+seeds: [1, 2, 3]
+fixed:
+  fl.mode: local
+  poison.clients: [fs-build-2]
+  poison.target_attack: beacon
+  poison.start_round: 20
+  poison.ramp_rounds: 5
+grid:
+  poison.pdr: [0.0, 0.05, 0.1, 0.2, 0.3, 0.5]

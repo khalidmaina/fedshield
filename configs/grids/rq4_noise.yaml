@@ -1,0 +1,11 @@
+# RQ4: does Track B noise weaken Multi-Krum's exclusion of adaptive attacks (host data)?
+name: rq4_noise
+base: configs/base.yaml
+seeds: [1, 2, 3]
+fixed:
+  privacy.track: B
+  aggregation.rule: multikrum
+  byzantine.clients: [fs-dev-1, fs-build-3]
+grid:
+  byzantine.attack: [lie, minmax, signflip]
+  privacy.B.noise_multiplier: [0.0, 0.5, 1.0, 2.0, 5.0]

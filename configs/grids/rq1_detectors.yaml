@@ -1,0 +1,13 @@
+# RQ1: hybrid vs single detectors, local-only vs federated (no attacks, no DP).
+# Every run reports SAE, IF and hybrid metrics, so detectors need no extra axis.
+name: rq1_detectors
+base: configs/base.yaml
+seeds: [1, 2, 3]
+fixed:
+  aggregation.rule: fedavg
+variants:
+  local_only: {fl.mode: local}
+  fedavg_hier: {}
+  fedavg_flat: {fl.hierarchy: flat}
+  fedprox_hier: {fl.prox_mu: 0.01}
+  multikrum_hier: {aggregation.rule: multikrum}

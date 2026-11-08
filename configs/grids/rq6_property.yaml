@@ -1,0 +1,15 @@
+# RQ6: property (host role) inference from released updates, with and without DP.
+name: rq6_property
+base: configs/base.yaml
+seeds: [1, 2, 3]
+post: property_inference
+fixed:
+  aggregation.rule: fedavg
+  log_updates: true
+variants:
+  no_dp: {privacy.track: none}
+  A_s1: {privacy.track: A, privacy.A.noise_multiplier: 1.0}
+  B_s0.5: {privacy.track: B, privacy.B.noise_multiplier: 0.5}
+  B_s1: {privacy.track: B, privacy.B.noise_multiplier: 1.0}
+  B_s2: {privacy.track: B, privacy.B.noise_multiplier: 2.0}
+  B_s5: {privacy.track: B, privacy.B.noise_multiplier: 5.0}
