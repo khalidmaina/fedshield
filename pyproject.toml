@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fedshield"
+version = "0.0.1"
+description = "eBPF-enhanced hierarchical federated learning for privacy-preserving threat detection with Wazuh"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+authors = [{ name = "Hasib Al Tahsin" }, { name = "Khalid Maina" }]
+# Runtime libraries are pinned in requirements.txt (install PyTorch CPU first, see README).
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["ruff==0.7.4", "pytest==8.3.3"]
+
+[tool.setuptools]
+packages = ["fedshield"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = ["thesis", "data", "results"]
+
+[tool.ruff.lint]
+# E/W = style errors, F = real bugs (unused names, undefined names), I = import order
+select = ["E", "F", "W", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit"]
+addopts = "-q"
+markers = [
+    "torch: needs PyTorch (skipped automatically when it is not installed)",
+]

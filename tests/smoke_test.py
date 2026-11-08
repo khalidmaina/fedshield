@@ -2,7 +2,8 @@
 """Quick check that every part of the pipeline runs (about 5-10 minutes on a laptop).
 
 Usage (repository root, venv active):
-    python tests/smoke_test.py
+    python tests/smoke_test.py            # every mode
+    python tests/smoke_test.py --quick    # one case per subsystem (used by CI)
 It creates a tiny synthetic dataset, runs every mode for a few rounds and prints
 PASS/FAIL for each. Results go to results/smoke/ and can be deleted afterwards.
 """
@@ -46,12 +47,18 @@ CASES = {
 }
 
 
+# A short subset for CI (--quick): one case per subsystem.
+QUICK = ["fedavg", "multikrum", "local_only", "trackA", "trackB", "lie", "poison", "updates_artifacts"]
+
+
 def main():
     py = sys.executable
+    quick = "--quick" in sys.argv[1:]
+    cases = {k: CASES[k] for k in QUICK} if quick else CASES
     subprocess.run([py, "scripts/make_synthetic.py", "--sessions", "4", "--windows-per-session", "300",
                     "--attack-windows", "30", "--out", DATA], check=True)
     failed = []
-    for name, sets in CASES.items():
+    for name, sets in cases.items():
         t = time.time()
         r = subprocess.run([py, "scripts/run_experiment.py", "--name", name, "--set", *COMMON, *sets],
                            capture_output=True, text=True)

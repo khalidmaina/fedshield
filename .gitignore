@@ -2,13 +2,28 @@
 .venv/
 __pycache__/
 *.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
 .ipynb_checkpoints/
 # Data and results stay on the machine (large and private)
 data/*
+!data/.gitkeep
 !data/README.md
 results/*
 !results/summaries/
+# LaTeX build files (keep the .tex sources and the final PDF)
+thesis/**/*.aux
+thesis/**/*.bbl
+thesis/**/*.blg
+thesis/**/*.fdb_latexmk
+thesis/**/*.fls
+thesis/**/*.out
+thesis/**/*.synctex.gz
+thesis/**/*.toc
 # Editors / OS
 .vscode/
+.idea/
 *.swp
+.DS_Store
 *.log

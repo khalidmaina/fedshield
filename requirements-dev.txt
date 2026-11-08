@@ -1,0 +1,4 @@
+# Development tools (lint + tests). Install after requirements.txt:
+#   pip install -r requirements-dev.txt
+ruff==0.7.4
+pytest==8.3.3
