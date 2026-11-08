@@ -1,0 +1,17 @@
+// T3 helper: run with `sudo bpftrace tests/integration/attack_signals.bt` (stops after 20 s).
+// Attack-relevant kernel signals per testbed host, for one 20-second window.
+tracepoint:syscalls:sys_enter_execve /strncmp(curtask->nsproxy->uts_ns->name.nodename, "fs-", 3) == 0/ {
+  $f = str(args->filename);
+  if (strncmp($f, "/tmp/", 5) == 0) { @exec_from_tmp[curtask->nsproxy->uts_ns->name.nodename] = count(); }
+  if ($f == "/usr/bin/curl" || $f == "/usr/bin/nc") { @net_tool_exec[curtask->nsproxy->uts_ns->name.nodename] = count(); }
+}
+tracepoint:syscalls:sys_enter_openat /strncmp(curtask->nsproxy->uts_ns->name.nodename, "fs-", 3) == 0/ {
+  $f = str(args->filename);
+  if ($f == "/etc/shadow" || $f == "/root/.ssh/id_rsa") { @open_sensitive[curtask->nsproxy->uts_ns->name.nodename] = count(); }
+  if (strncmp($f, "/etc/cron.d/", 12) == 0 && (args->flags & 3) != 0) { @cron_write[curtask->nsproxy->uts_ns->name.nodename] = count(); }
+}
+tracepoint:sock:inet_sock_set_state /args->newstate == 2 && args->protocol == 6 && strncmp(curtask->nsproxy->uts_ns->name.nodename, "fs-", 3) == 0/ {
+  @conn[curtask->nsproxy->uts_ns->name.nodename] = count();
+  if (args->dport != 8080 && args->dport != 80) { @conn_uncommon_port[curtask->nsproxy->uts_ns->name.nodename] = count(); }
+}
+interval:s:20 { exit(); }
