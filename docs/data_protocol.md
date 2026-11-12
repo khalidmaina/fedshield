@@ -8,6 +8,8 @@ freeze (end of Sprint 4).
 - [ ] Collector freeze tagged (`v0.2-collector`); integration checks T1-T4 passed
 - [ ] Rotation decided (`docs/decisions/0003-attack-rotation.md`); number of sessions fixed
 - [ ] One session held out for the SIEM replay (never used for training)
+- [ ] Collection machine chosen: ______ (`uname -r`: ______). Every session is collected on it (decision 0008):
+      counts depend on CPU speed and network setup
 
 ## Each session
 
