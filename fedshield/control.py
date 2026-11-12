@@ -15,12 +15,10 @@ import os
 import time
 import uuid
 
+from .topology import ATTACKS, HOSTS, ROLES  # noqa: F401  (re-exported: scripts import them from here)
+
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONTROL_DIR = os.path.join(REPO, "testbed", "control")
-
-ROLES = ("web", "db", "build", "dev")
-HOSTS = tuple(f"fs-{role}-{i}" for role in ROLES for i in (1, 2, 3))
-ATTACKS = ("beacon", "cred_access", "miner", "persistence", "scan")
 MAX_SECONDS = 3600
 
 
@@ -117,6 +115,25 @@ def assess_container(name, inspect, commands):
     elif "c2.py" not in joined:
         problems.append("c2 server is not running")
     return problems
+
+
+def testbed_health():
+    """[(container, state, started, problems)] for all 13 containers, judged from outside (docker)."""
+    import subprocess
+
+    def docker(*args):
+        return subprocess.run(["docker", *args], capture_output=True, text=True)
+
+    out = []
+    for name in HOSTS + ("c2-server",):
+        r = docker("inspect", name)
+        inspect = json.loads(r.stdout)[0] if r.returncode == 0 else None
+        top = docker("top", name, "-o", "pid,args")       # docker top requires the pid column
+        commands = top.stdout.splitlines()[1:] if top.returncode == 0 else []
+        state = inspect["State"]["Status"] if inspect else "-"
+        started = inspect["State"]["StartedAt"][:19].replace("T", " ") if inspect else "-"
+        out.append((name, state, started, assess_container(name, inspect, commands)))
+    return out
 
 
 def start_attack(host, attack, seconds, timeout=10.0, control_dir=None):

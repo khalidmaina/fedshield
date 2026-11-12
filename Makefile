@@ -1,7 +1,7 @@
 # FedShield common commands. Run from the repository root with the venv active.
 #   make help
 .PHONY: help install lint format test smoke-quick smoke testbed-up testbed-down testbed-status compose-check \
-        install-bpftrace collect features-report clean
+        install-bpftrace collect features-report schedules session dataset dataset-report clean
 
 PY ?= python
 # make collect DURATION=7200 for one 2-hour session (0 = until Ctrl+C)
@@ -20,7 +20,11 @@ help:
 	@echo "make compose-check  validate testbed/docker-compose.yml"
 	@echo "make install-bpftrace       install the verified bpftrace v0.20.2 (decision 0007)"
 	@echo "make collect DURATION=120   run the eBPF collector (sudo, system Python) into data/features/"
-	@echo "make features-report        summarise the newest features file (hosts, gaps, loss, medians)"
+	@echo "make features-report        summarise the latest collector run (hosts, gaps, loss, medians)"
+	@echo "make schedules              rewrite testbed/schedules/ (8 sessions, decision 0003)"
+	@echo "make session N=1            run collection session N (collector must be running)"
+	@echo "make dataset                build data/processed/host_windows.csv from features + labels"
+	@echo "make dataset-report         what the dataset holds per split, host and attack (RQ5 check)"
 
 install:
 	$(PY) -m pip install --upgrade pip
@@ -63,6 +67,19 @@ collect:
 
 features-report:
 	$(PY) scripts/features_report.py
+
+schedules:
+	$(PY) scripts/make_schedule.py
+
+session:
+	@test -n "$(N)" || (echo "usage: make session N=<session number 1-8>"; exit 2)
+	$(PY) scripts/run_session.py --session $(N)
+
+dataset:
+	$(PY) scripts/build_dataset.py
+
+dataset-report:
+	$(PY) scripts/dataset_report.py
 
 compose-check:
 	cd testbed && docker compose config --quiet && echo "docker-compose.yml is valid"

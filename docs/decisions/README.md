@@ -31,7 +31,7 @@ What this makes easier, what it costs, what the thesis must state.
 |---|---|---|
 | 0001 | Native Ubuntu 24.04 with Docker Compose | accepted |
 | 0002 | Simulated federated learning with two regions of six | accepted |
-| 0003 | Attack rotation and number of sessions | proposed (decide in Sprint 3) |
+| 0003 | Eight sessions split by session; two attacks per host per session | accepted |
 | 0004 | Rebuild module by module; reference code at tag `reference-v0` | accepted |
 | 0005 | Attacks started by an in-host agent; harness leaves no trace in the telemetry | accepted |
 | 0006 | Collector: stream events, counts only on disk, loss and overhead per window | accepted |
