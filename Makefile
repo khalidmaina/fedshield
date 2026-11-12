@@ -1,9 +1,10 @@
-# FedShield common commands. Run from the repository root with the venv active.
+# FedShield common commands. Run from the repository root; the project's .venv is used automatically.
 #   make help
 .PHONY: help install lint format test smoke-quick smoke testbed-up testbed-down testbed-status compose-check \
         install-bpftrace collect features-report schedules session dataset dataset-report clean
 
-PY ?= python
+# The project's virtual environment when it exists (activated or not), otherwise python3.
+PY ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python3)
 # make collect DURATION=7200 for one 2-hour session (0 = until Ctrl+C)
 DURATION ?= 0
 
@@ -27,16 +28,18 @@ help:
 	@echo "make dataset-report         what the dataset holds per split, host and attack (RQ5 check)"
 
 install:
+	@$(PY) -c "import sys; sys.exit(sys.prefix == sys.base_prefix)" || \
+	  { echo "No virtual environment: run  python3.12 -m venv .venv  first."; exit 1; }
 	$(PY) -m pip install --upgrade pip
 	$(PY) -m pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
 	$(PY) -m pip install -r requirements.txt -r requirements-dev.txt
 	$(PY) -m pip install -e . --no-deps
 
 lint:
-	ruff check .
+	$(PY) -m ruff check .
 
 format:
-	ruff check --fix .
+	$(PY) -m ruff check --fix .
 
 test:
 	$(PY) -m pytest
