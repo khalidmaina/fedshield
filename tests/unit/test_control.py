@@ -62,9 +62,20 @@ def test_wait_for_finds_the_matching_event_or_times_out(ctl):
 
 
 def test_start_attack_times_out_and_cleans_up_when_no_agent_answers(ctl):
-    with pytest.raises(TimeoutError):
+    with pytest.raises(TimeoutError, match="did not answer"):
         c.start_attack("fs-web-1", "scan", 5, timeout=0.3, control_dir=ctl)
     assert not os.path.exists(os.path.join(ctl, "fs-web-1", "request"))
+
+
+def test_an_unreadable_answer_is_reported_not_hidden(ctl, monkeypatch):
+    """A status line the host wrote but that is not valid JSON (e.g. decimal comma) gets a clear error."""
+    class FixedId:
+        hex = "abc123def456"
+    monkeypatch.setattr(c.uuid, "uuid4", lambda: FixedId())
+    with open(os.path.join(ctl, "fs-web-1", "status.jsonl"), "w") as f:
+        f.write('{"id":"abc123def456","event":"started","ts":1794496121,986074}\n')
+    with pytest.raises(TimeoutError, match="not valid JSON"):
+        c.start_attack("fs-web-1", "scan", 5, timeout=0.3, control_dir=ctl)
 
 
 # ---------------- health check from outside the container ----------------

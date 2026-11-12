@@ -26,8 +26,26 @@ def write(path, text):
     os.chmod(path, 0o755)
 
 
-@pytest.fixture
-def agent(tmp_path):
+def comma_locale():
+    """An installed locale that writes decimals with a comma (e.g. ru_RU), or None."""
+    try:
+        names = subprocess.run(["locale", "-a"], capture_output=True, text=True).stdout.split()
+    except FileNotFoundError:
+        return None
+    for name in names:
+        low = name.lower()
+        if low.startswith(("ru_ru", "de_de", "fr_fr", "es_es", "it_it", "pt_br")) and "utf" in low:
+            return name
+    return None
+
+
+# Every agent test runs twice: in the C locale and in a decimal-comma locale such as ru_RU,
+# where bash writes $EPOCHREALTIME as 1794496121,986074 (regression: broke the JSON reports).
+@pytest.fixture(params=["C", "comma"])
+def agent(request, tmp_path):
+    loc = "C" if request.param == "C" else comma_locale()
+    if loc is None:
+        pytest.skip("no decimal-comma locale installed (e.g. sudo locale-gen ru_RU.UTF-8)")
     roles, attacks, ctl = tmp_path / "roles", tmp_path / "attacks", tmp_path / "control"
     roles.mkdir()
     attacks.mkdir()
@@ -35,17 +53,19 @@ def agent(tmp_path):
     write(roles / "idle.sh", "#!/bin/bash\nexec sleep 600\n")
     write(attacks / "beacon.sh", "#!/bin/bash\nsleep 1\nexit 3\n")       # finishes with a known code
     write(attacks / "scan.sh", "#!/bin/bash\nsleep \"$1\"\n")
-    env = dict(os.environ, HOSTNAME="fs-web-1", ROLE="idle", INTENSITY="1",
+    env = dict(os.environ, HOSTNAME="fs-web-1", ROLE="idle", INTENSITY="1", LANG=loc, LC_ALL=loc,
                ROLE_DIR=str(roles), ATTACK_DIR=str(attacks), CONTROL_DIR=str(ctl))
-    proc = subprocess.Popen(["bash", AGENT], env=env, start_new_session=True,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    log = open(tmp_path / "agent.log", "w")          # a file, not a pipe nobody reads (could fill and block)
+    proc = subprocess.Popen(["bash", AGENT], env=env, start_new_session=True, stdout=log, stderr=log)
     deadline = time.monotonic() + 5
     while not (ctl / "fs-web-1").is_dir() and time.monotonic() < deadline:
         time.sleep(0.05)
+    assert (ctl / "fs-web-1").is_dir(), "agent did not start: " + (tmp_path / "agent.log").read_text()
     yield proc, str(ctl)
     if proc.poll() is None:
         os.killpg(proc.pid, signal.SIGKILL)
     proc.wait(timeout=5)
+    log.close()
 
 
 def test_agent_starts_an_attack_and_reports_its_exit_code(agent):
