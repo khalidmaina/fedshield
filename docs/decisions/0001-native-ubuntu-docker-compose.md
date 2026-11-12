@@ -1,6 +1,6 @@
 # 0001. Native Ubuntu 24.04 with Docker Compose
 
-- Status: accepted
+- Status: accepted; OS version refined by 0007 (22.04 with kernel 6.8 also supported)
 - Date: 2026-11-08
 - Deciders: Hasib, Khalid
 

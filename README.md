@@ -26,20 +26,23 @@ tag [`reference-v0`](https://github.com/khalidmaina/fedshield/tree/reference-v0)
 | S6-S11 | Robustness, privacy, RQ4, RQ5, RQ6 | `fedshield/` | planned |
 | S12 | Wazuh and overhead | `wazuh/`, `scripts/` | planned |
 
-## Setup (Ubuntu 24.04)
+## Setup (Ubuntu 24.04, or 22.04 with the 6.8 kernel)
 
 ```bash
-sudo apt update && sudo apt install -y git make python3-venv python3-dev build-essential \
-    bpftrace linux-headers-$(uname -r) docker.io docker-compose-v2
+sudo apt update && sudo apt install -y git make curl python3-venv python3-dev build-essential \
+    linux-headers-$(uname -r) docker.io docker-compose-v2
 sudo usermod -aG docker $USER          # then log out and back in
 
 git clone git@github.com:khalidmaina/fedshield.git ~/fedshield && cd ~/fedshield
-python3 -m venv .venv && source .venv/bin/activate
+make install-bpftrace                  # the verified bpftrace v0.20.2 (not the apt package; decision 0007)
+python3.12 -m venv .venv && source .venv/bin/activate
 make install                           # PyTorch (CPU), pinned libraries, dev tools
 make lint && make test
 ```
 
-Use Ubuntu 24.04 (Python 3.12): the pinned libraries do not install on newer Python versions.
+The venv needs Python 3.12 (built in on 24.04; on 22.04 install `python3.12` separately). The collector runs as root
+with the system Python, which may be older (3.10 on 22.04). Every collection run records its bpftrace version,
+kernel, OS and Python in `data/features/collector_stats.jsonl`.
 
 ## Working on it
 

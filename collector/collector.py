@@ -19,6 +19,8 @@ Nothing else is written: paths, addresses and command names stay in memory for o
 import argparse
 import json
 import os
+import platform
+import shutil
 import signal
 import subprocess
 import sys
@@ -31,6 +33,7 @@ from fedshield.features import Windower, parse_event  # noqa: E402
 
 BPF_STATS = "/proc/sys/kernel/bpf_stats_enabled"
 STDERR_NOISE = ("RLIMIT_MEMLOCK", "is deprecated")
+TESTED_BPFTRACE = "v0.20.2"          # the version the collector was verified with (decision 0007)
 CLK_TCK = os.sysconf("SC_CLK_TCK")
 
 
@@ -105,6 +108,25 @@ class Overhead:
         return delta
 
 
+def toolchain(bpftrace):
+    """Versions that must stay fixed across sessions; recorded at the start of every run."""
+    try:
+        out = subprocess.run([bpftrace, "--version"], capture_output=True, text=True, timeout=10).stdout.split()
+        version = out[-1] if out else "unknown"
+    except (OSError, subprocess.TimeoutExpired):
+        version = "unknown"
+    os_name = "unknown"
+    try:
+        with open("/etc/os-release") as f:
+            for line in f:
+                if line.startswith("PRETTY_NAME="):
+                    os_name = line.split("=", 1)[1].strip().strip('"')
+    except OSError:
+        pass
+    return {"bpftrace": version, "kernel": platform.release(), "os": os_name,
+            "python": platform.python_version()}
+
+
 # ---------------------------------------------------------------- output files
 
 class Output:
@@ -167,14 +189,24 @@ def main():
 
     if os.geteuid() != 0 and not args.allow_non_root:
         sys.exit("Run as root: sudo python3 collector/collector.py")
+    bpftrace = shutil.which(args.bpftrace)
+    if bpftrace is None:
+        sys.exit(f"collector: bpftrace is not installed (or not on root's PATH). Install the tested version "
+                 f"{TESTED_BPFTRACE} with: ./scripts/install_bpftrace.sh   (see docs/decisions/0007)")
+    tools = toolchain(bpftrace)
+    if tools["bpftrace"] != TESTED_BPFTRACE:
+        print(f"collector: WARNING: bpftrace {tools['bpftrace']} found, but the collector was verified with "
+              f"{TESTED_BPFTRACE}. Sessions collected with other versions may not be comparable "
+              f"(./scripts/install_bpftrace.sh installs {TESTED_BPFTRACE}).", file=sys.stderr, flush=True)
 
     out = Output(args.out)
     previous_bpf_stats = None if args.no_bpf_stats else set_bpf_stats(True)
 
     start = time.time()
+    out.stat({"event": "start", "ts": round(start, 3), "window_sec": args.window, **tools})
     ns_offset = time.time_ns() - time.monotonic_ns()          # bpftrace nsecs is CLOCK_MONOTONIC
     env = dict(os.environ, BPFTRACE_MAX_STRLEN="128", BPFTRACE_PERF_RB_PAGES="256", LC_ALL="C")
-    proc = subprocess.Popen([args.bpftrace, "-B", "line", args.bt], stdout=subprocess.PIPE,
+    proc = subprocess.Popen([bpftrace, "-B", "line", args.bt], stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, text=True, env=env, bufsize=1)
 
     windower = Windower(start, window_sec=args.window, grace_sec=args.grace)
@@ -202,8 +234,12 @@ def main():
                 elif windower.add(ev):
                     count["events"] += 1
 
+    problems = set()
+
     def read_errors():
         for line in proc.stderr:
+            if "tracepoint not found" in line:
+                problems.add("tracefs")
             if not any(s in line for s in STDERR_NOISE):
                 sys.stderr.write("[bpftrace] " + line)
 
@@ -226,7 +262,7 @@ def main():
             snap = {**count, "late": windower.late}
         starts = sorted({r["window_start"] for r in rows})
         windows_written += len(starts)
-        out.stat({"ts": round(now, 3), "window_start": starts[-1], "windows": len(starts),
+        out.stat({"event": "window", "ts": round(now, 3), "window_start": starts[-1], "windows": len(starts),
                   "hosts": len({r["host"] for r in rows}), "interval_s": round(now - last["t"], 3),
                   **{k: snap[k] - last[k] for k in ("events", "malformed", "lost", "late")},
                   **overhead.step()})
@@ -242,7 +278,11 @@ def main():
             rows = windower.flush(now)
         write(rows, now)
         if proc.poll() is not None:
+            time.sleep(0.2)                                     # let the error reader see bpftrace's last lines
             print(f"collector: bpftrace exited with code {proc.returncode}", file=sys.stderr)
+            if "tracefs" in problems:
+                print("collector: the kernel's tracing filesystem is not mounted. Run once:\n"
+                      "  sudo mount -t tracefs nodev /sys/kernel/tracing", file=sys.stderr)
             break
         if args.duration and now - start >= args.duration:
             break
@@ -263,6 +303,9 @@ def main():
     with lock:
         rows = windower.flush(stop_time, final=True)
     write(rows, stop_time)
+    out.stat({"event": "stop", "ts": round(stop_time, 3), "windows": windows_written, "events": count["events"],
+              "lost": count["lost"], "late": windower.late, "malformed": count["malformed"],
+              "bpftrace_exit": proc.returncode})
     out.close()
     if previous_bpf_stats is not None:
         set_bpf_stats(previous_bpf_stats == "1")
