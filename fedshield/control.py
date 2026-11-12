@@ -38,14 +38,27 @@ def request_attack(host, attack, seconds, control_dir=None):
     if not os.path.isdir(d):
         raise FileNotFoundError(f"{d} does not exist. Is the testbed running? (make testbed-up)")
     if not os.access(d, os.W_OK):
-        raise PermissionError(f"Cannot write to {d}. It must belong to you: run 'make testbed-up', which "
-                              f"creates testbed/control/ before Docker does.")
+        raise PermissionError(f"Cannot write to {d}: it belongs to another user (probably root). "
+                              f"Fix: sudo chown -R $USER:$USER {os.path.dirname(d)}")
     req_id = uuid.uuid4().hex[:12]
     tmp = os.path.join(d, f".request.{req_id}")
     with open(tmp, "w") as f:
         f.write(f"{req_id} {attack} {seconds}\n")
     os.replace(tmp, os.path.join(d, "request"))
     return req_id
+
+
+def control_problems(control_dir=None):
+    """Hosts whose control folder is missing or not writable by us (empty list = all fine)."""
+    base = control_dir or CONTROL_DIR
+    problems = []
+    for host in HOSTS:
+        d = os.path.join(base, host)
+        if not os.path.isdir(d):
+            problems.append(f"{d} is missing (is the testbed running? make testbed-up)")
+        elif not os.access(d, os.W_OK):
+            problems.append(f"{d} is not writable by you. Fix: sudo chown -R $USER:$USER {base}")
+    return problems
 
 
 def clear_request(host, control_dir=None):

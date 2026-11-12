@@ -19,7 +19,7 @@ import time
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO)
-from fedshield.control import testbed_health  # noqa: E402
+from fedshield.control import control_problems, testbed_health  # noqa: E402
 from fedshield.schedule import validate  # noqa: E402
 from fedshield.session import run_session, summarize  # noqa: E402
 
@@ -66,6 +66,7 @@ def main():
 
     problems = [f"schedule: {p}" for p in validate(schedule)]
     problems += [f"{name}: {'; '.join(p)}" for name, _, _, p in testbed_health() if p]
+    problems += control_problems()
     problems += collector_running(args.features)
     if os.path.exists(out) and not args.overwrite:
         problems.append(f"{out} already exists (this session was recorded; use --overwrite to redo it)")

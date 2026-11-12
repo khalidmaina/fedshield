@@ -37,3 +37,4 @@ What this makes easier, what it costs, what the thesis must state.
 | 0006 | Collector: stream events, counts only on disk, loss and overhead per window | accepted |
 | 0007 | Toolchain: bpftrace 0.20.2 static build on Ubuntu 22.04/24.04, kernel 6.8; recorded per session | accepted |
 | 0008 | Web workload uses 127.0.0.1; all sessions collected on one machine | accepted |
+| 0009 | Control folders belong to the user; session runner checks them first | accepted |

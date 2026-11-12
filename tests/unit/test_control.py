@@ -37,6 +37,22 @@ def test_invalid_requests_are_refused_before_writing(ctl, host, attack, secs):
     assert not os.path.exists(os.path.join(ctl, "fs-web-1", "request"))
 
 
+def test_control_problems_finds_missing_and_unwritable_folders(tmp_path):
+    for h in c.HOSTS:
+        (tmp_path / h).mkdir()
+    assert c.control_problems(str(tmp_path)) == []
+    (tmp_path / "fs-db-3").rmdir()
+    probs = c.control_problems(str(tmp_path))
+    assert len(probs) == 1 and "fs-db-3 is missing" in probs[0]
+    if os.geteuid() != 0:                                    # root can write anywhere: nothing to check then
+        (tmp_path / "fs-web-2").chmod(0o555)
+        probs = c.control_problems(str(tmp_path))
+        assert any("fs-web-2 is not writable" in p and "sudo chown" in p for p in probs)
+        with pytest.raises(PermissionError, match="sudo chown"):
+            c.request_attack("fs-web-2", "scan", 5, control_dir=str(tmp_path))
+        (tmp_path / "fs-web-2").chmod(0o755)
+
+
 def test_missing_control_folder_gives_a_clear_error(tmp_path):
     with pytest.raises(FileNotFoundError, match="make testbed-up"):
         c.request_attack("fs-db-1", "scan", 10, control_dir=str(tmp_path))

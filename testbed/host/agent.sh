@@ -31,6 +31,10 @@ export ROLE INTENSITY ROLE_DIR
 ATTACKS=" beacon cred_access miner persistence scan "
 CTL="$CONTROL_DIR/$HOSTNAME"
 mkdir -p "$CTL"
+# The agent runs as root, so a folder it creates belongs to root on the host machine and the host-side
+# tools (running as the user) could not write requests into it. Give it the owner of the control folder
+# (the user who ran make testbed-up). Runs once at start-up, before any data is collected (decision 0009).
+chown --reference="$CONTROL_DIR" "$CTL" 2>/dev/null || true
 
 TICK="/tmp/.fs-agent-tick.$$"
 mkfifo "$TICK" && exec 3<>"$TICK"
