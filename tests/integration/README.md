@@ -18,8 +18,22 @@ running). `docker logs fs-web-1 | head -1` shows `agent: host=fs-web-1 role=web 
 
 ## T2 — Collector sees every host and only the hosts (Sprint 2)
 
-To be written with the collector. Pass: exactly the 12 `fs-*` hosts (no `c2-server`, nothing from the machine
-itself), about 6 windows per host per minute, lost events 0 or a stated small number.
+With the testbed up:
+
+```bash
+make collect DURATION=120                        # sudo python3 collector/collector.py --duration 120
+python scripts/features_report.py                # newest data/features/features_*.jsonl
+tail -3 data/features/collector_stats.jsonl
+```
+
+Pass: `hosts: 12 of 12` with no missing or unexpected hosts, `no gaps`, about 11 windows per host for 120 s (the
+first and last partial windows are skipped), `lost events: 0` (or a stated small number), and in the stats lines
+`late` 0 and `malformed` 0. The four attack-only features (`exec_from_tmp`, `open_sensitive`, `cron_write`,
+`conn_uncommon_port`) are listed as never non-zero when no attack ran.
+
+To see attacks in the features (T3 through the collector), run the T3 attack commands below while collecting
+for 90 s, then compare `python scripts/features_report.py --from <attack start> --to <attack end>` with a quiet
+range. Reference result: `docs/decisions/0006-collector-design.md`.
 
 ## T3 — Each attack runs and shows up in the kernel signals
 

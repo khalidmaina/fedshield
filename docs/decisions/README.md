@@ -34,3 +34,4 @@ What this makes easier, what it costs, what the thesis must state.
 | 0003 | Attack rotation and number of sessions | proposed (decide in Sprint 3) |
 | 0004 | Rebuild module by module; reference code at tag `reference-v0` | accepted |
 | 0005 | Attacks started by an in-host agent; harness leaves no trace in the telemetry | accepted |
+| 0006 | Collector: stream events, counts only on disk, loss and overhead per window | accepted |
