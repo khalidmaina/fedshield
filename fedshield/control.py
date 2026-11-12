@@ -58,20 +58,25 @@ def clear_request(host, control_dir=None):
         pass
 
 
-def read_status(host, control_dir=None):
-    """All status lines a host has reported, oldest first. Malformed lines are skipped."""
+def _status_lines(host, control_dir):
+    """(readable records, unreadable raw lines) from a host's status.jsonl."""
     path = os.path.join(_host_dir(host, control_dir), "status.jsonl")
-    out = []
+    good, bad = [], []
     try:
         with open(path) as f:
             for line in f:
                 try:
-                    out.append(json.loads(line))
+                    good.append(json.loads(line))
                 except json.JSONDecodeError:
-                    continue
+                    bad.append(line.rstrip("\n"))
     except FileNotFoundError:
         pass
-    return out
+    return good, bad
+
+
+def read_status(host, control_dir=None):
+    """All status lines a host has reported, oldest first. Malformed lines are skipped."""
+    return _status_lines(host, control_dir)[0]
 
 
 def wait_for(host, req_id, events=("started", "rejected"), timeout=10.0, poll=0.2, control_dir=None):
@@ -126,6 +131,11 @@ def start_attack(host, attack, seconds, timeout=10.0, control_dir=None):
     finally:
         clear_request(host, control_dir)
     if rec is None:
+        bad = [line for line in _status_lines(host, control_dir)[1] if req_id in line]
+        if bad:
+            raise TimeoutError(f"{host} answered request {req_id}, but its status line is not valid JSON: "
+                               f"{bad[-1]!r}. Check the agent's output format (e.g. a locale that writes "
+                               f"decimal commas).")
         raise TimeoutError(f"{host} did not answer request {req_id} within {timeout:.0f} s. "
                            f"Is the host running? (make testbed-status)")
     return rec
