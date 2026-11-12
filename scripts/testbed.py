@@ -13,35 +13,21 @@ leave no trace in the collected telemetry.
 import argparse
 import json
 import os
-import subprocess
 import sys
 import time
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO)
-from fedshield.control import ATTACKS, HOSTS, assess_container, read_status, start_attack, wait_for  # noqa: E402
-
-CONTAINERS = HOSTS + ("c2-server",)
-
-
-def docker(*args):
-    return subprocess.run(["docker", *args], capture_output=True, text=True)
+from fedshield.control import ATTACKS, HOSTS, read_status, start_attack, testbed_health, wait_for  # noqa: E402
 
 
 def cmd_status(_args):
-    bad = 0
+    health = testbed_health()
     print(f"{'container':<12} {'state':<9} {'started':<20} problems")
-    for name in CONTAINERS:
-        r = docker("inspect", name)
-        inspect = json.loads(r.stdout)[0] if r.returncode == 0 else None
-        top = docker("top", name, "-o", "pid,args")       # docker top requires the pid column
-        commands = top.stdout.splitlines()[1:] if top.returncode == 0 else []
-        problems = assess_container(name, inspect, commands)
-        state = inspect["State"]["Status"] if inspect else "-"
-        started = inspect["State"]["StartedAt"][:19].replace("T", " ") if inspect else "-"
-        bad += bool(problems)
+    for name, state, started, problems in health:
         print(f"{name:<12} {state:<9} {started:<20} {'; '.join(problems) or 'ok'}")
-    print(f"\n{len(CONTAINERS) - bad}/{len(CONTAINERS)} containers healthy")
+    bad = sum(bool(p) for *_, p in health)
+    print(f"\n{len(health) - bad}/{len(health)} containers healthy")
     return 1 if bad else 0
 
 

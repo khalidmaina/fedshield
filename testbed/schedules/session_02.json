@@ -1,0 +1,178 @@
+{
+ "session": 2,
+ "split": "train",
+ "seed": 7,
+ "duration_min": 120,
+ "attack_min": 8,
+ "max_concurrent": 4,
+ "attacks": [
+  {
+   "host": "fs-db-2",
+   "attack": "scan",
+   "start_min": 9.5,
+   "duration_min": 8,
+   "slot": 0
+  },
+  {
+   "host": "fs-dev-3",
+   "attack": "persistence",
+   "start_min": 13.0,
+   "duration_min": 8,
+   "slot": 0
+  },
+  {
+   "host": "fs-dev-1",
+   "attack": "miner",
+   "start_min": 17.0,
+   "duration_min": 8,
+   "slot": 0
+  },
+  {
+   "host": "fs-db-3",
+   "attack": "cred_access",
+   "start_min": 17.75,
+   "duration_min": 8,
+   "slot": 0
+  },
+  {
+   "host": "fs-web-3",
+   "attack": "beacon",
+   "start_min": 20.25,
+   "duration_min": 8,
+   "slot": 0
+  },
+  {
+   "host": "fs-db-1",
+   "attack": "beacon",
+   "start_min": 24.25,
+   "duration_min": 8,
+   "slot": 0
+  },
+  {
+   "host": "fs-web-2",
+   "attack": "persistence",
+   "start_min": 27.75,
+   "duration_min": 8,
+   "slot": 0
+  },
+  {
+   "host": "fs-build-2",
+   "attack": "cred_access",
+   "start_min": 30.25,
+   "duration_min": 8,
+   "slot": 0
+  },
+  {
+   "host": "fs-web-1",
+   "attack": "cred_access",
+   "start_min": 32.5,
+   "duration_min": 8,
+   "slot": 0
+  },
+  {
+   "host": "fs-build-3",
+   "attack": "persistence",
+   "start_min": 41.0,
+   "duration_min": 8,
+   "slot": 0
+  },
+  {
+   "host": "fs-dev-2",
+   "attack": "cred_access",
+   "start_min": 42.75,
+   "duration_min": 8,
+   "slot": 0
+  },
+  {
+   "host": "fs-build-1",
+   "attack": "cred_access",
+   "start_min": 49.0,
+   "duration_min": 8,
+   "slot": 0
+  },
+  {
+   "host": "fs-build-2",
+   "attack": "miner",
+   "start_min": 64.0,
+   "duration_min": 8,
+   "slot": 1
+  },
+  {
+   "host": "fs-web-3",
+   "attack": "scan",
+   "start_min": 66.5,
+   "duration_min": 8,
+   "slot": 1
+  },
+  {
+   "host": "fs-dev-1",
+   "attack": "scan",
+   "start_min": 74.5,
+   "duration_min": 8,
+   "slot": 1
+  },
+  {
+   "host": "fs-web-2",
+   "attack": "beacon",
+   "start_min": 78.75,
+   "duration_min": 8,
+   "slot": 1
+  },
+  {
+   "host": "fs-db-2",
+   "attack": "cred_access",
+   "start_min": 81.25,
+   "duration_min": 8,
+   "slot": 1
+  },
+  {
+   "host": "fs-web-1",
+   "attack": "persistence",
+   "start_min": 82.75,
+   "duration_min": 8,
+   "slot": 1
+  },
+  {
+   "host": "fs-db-1",
+   "attack": "scan",
+   "start_min": 86.0,
+   "duration_min": 8,
+   "slot": 1
+  },
+  {
+   "host": "fs-build-3",
+   "attack": "miner",
+   "start_min": 90.25,
+   "duration_min": 8,
+   "slot": 1
+  },
+  {
+   "host": "fs-dev-3",
+   "attack": "beacon",
+   "start_min": 90.75,
+   "duration_min": 8,
+   "slot": 1
+  },
+  {
+   "host": "fs-db-3",
+   "attack": "scan",
+   "start_min": 98.0,
+   "duration_min": 8,
+   "slot": 1
+  },
+  {
+   "host": "fs-dev-2",
+   "attack": "miner",
+   "start_min": 102.75,
+   "duration_min": 8,
+   "slot": 1
+  },
+  {
+   "host": "fs-build-1",
+   "attack": "scan",
+   "start_min": 105.75,
+   "duration_min": 8,
+   "slot": 1
+  }
+ ]
+}
