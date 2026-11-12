@@ -69,8 +69,8 @@ def main():
             continue
         got = s["windows_per_host"]
         short = {h: n for h, n in got.items() if n < s["expected_windows_per_host"]}
-        print(f"session {s['session']} ({s['split']}): {len(got)} hosts, up to {s['expected_windows_per_host']} "
-              f"windows each" + (f"; fewer for {short}" if short else ""))
+        print(f"session {s['session']} ({s['split']}): {len(got)} hosts, {s['expected_windows_per_host']} windows "
+              f"expected each, " + (f"MISSING windows for {short}" if short else "none missing"))
     d = report["dropped"]
     print(f"\ndropped: {d['ambiguous']} ambiguous (attack edge), {d['excluded']} excluded (failed attack), "
           f"{d['duplicate']} duplicate")

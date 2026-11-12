@@ -72,12 +72,12 @@ def build(feature_rows, records, min_overlap=0.5, include_aborted=False):
                 report["dropped"]["duplicate"] += 1
                 continue
             seen.add(key)
+            host = r["host"]
+            per_host[host] = per_host.get(host, 0) + 1                   # delivered by the collector
             label = label_window(r["window_start"], r["window_sec"], spans.get(r["host"], []), min_overlap)
             if isinstance(label, tuple):
                 report["dropped"][label[1]] += 1
                 continue
-            host = r["host"]
-            per_host[host] = per_host.get(host, 0) + 1
             rows.append({"session": rec["session"], "split": rec["split"], "host": host, "role": role_of(host),
                          "intensity": INTENSITY.get(host), "region": REGION_OF.get(host),
                          "window_start": r["window_start"], "label": label,
