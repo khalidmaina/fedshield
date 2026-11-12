@@ -1,8 +1,11 @@
 # FedShield common commands. Run from the repository root with the venv active.
 #   make help
-.PHONY: help install lint format test smoke-quick smoke testbed-up testbed-down testbed-status compose-check clean
+.PHONY: help install lint format test smoke-quick smoke testbed-up testbed-down testbed-status compose-check \
+        collect features-report clean
 
 PY ?= python
+# make collect DURATION=7200 for one 2-hour session (0 = until Ctrl+C)
+DURATION ?= 0
 
 help:
 	@echo "make install        install PyTorch (CPU), runtime and dev libraries into the active venv"
@@ -15,6 +18,8 @@ help:
 	@echo "make testbed-down   stop the testbed"
 	@echo "make testbed-status check all 13 containers from outside (scripts/testbed.py status)"
 	@echo "make compose-check  validate testbed/docker-compose.yml"
+	@echo "make collect DURATION=120   run the eBPF collector (sudo, system Python) into data/features/"
+	@echo "make features-report        summarise the newest features file (hosts, gaps, loss, medians)"
 
 install:
 	$(PY) -m pip install --upgrade pip
@@ -48,6 +53,12 @@ testbed-down:
 
 testbed-status:
 	$(PY) scripts/testbed.py status
+
+collect:
+	sudo /usr/bin/python3 collector/collector.py --duration $(DURATION)
+
+features-report:
+	$(PY) scripts/features_report.py
 
 compose-check:
 	cd testbed && docker compose config --quiet && echo "docker-compose.yml is valid"
