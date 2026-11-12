@@ -1,7 +1,7 @@
 # FedShield common commands. Run from the repository root with the venv active.
 #   make help
 .PHONY: help install lint format test smoke-quick smoke testbed-up testbed-down testbed-status compose-check \
-        collect features-report clean
+        install-bpftrace collect features-report clean
 
 PY ?= python
 # make collect DURATION=7200 for one 2-hour session (0 = until Ctrl+C)
@@ -18,6 +18,7 @@ help:
 	@echo "make testbed-down   stop the testbed"
 	@echo "make testbed-status check all 13 containers from outside (scripts/testbed.py status)"
 	@echo "make compose-check  validate testbed/docker-compose.yml"
+	@echo "make install-bpftrace       install the verified bpftrace v0.20.2 (decision 0007)"
 	@echo "make collect DURATION=120   run the eBPF collector (sudo, system Python) into data/features/"
 	@echo "make features-report        summarise the newest features file (hosts, gaps, loss, medians)"
 
@@ -53,6 +54,9 @@ testbed-down:
 
 testbed-status:
 	$(PY) scripts/testbed.py status
+
+install-bpftrace:
+	./scripts/install_bpftrace.sh
 
 collect:
 	sudo /usr/bin/python3 collector/collector.py --duration $(DURATION)
