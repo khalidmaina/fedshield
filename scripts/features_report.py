@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Summarise collected feature windows: coverage per host and typical values per role.
 
-    python scripts/features_report.py                         # newest data/features/features_*.jsonl
-    python scripts/features_report.py data/features/features_20261112.jsonl
+    python scripts/features_report.py                         # the latest collector run
+    python scripts/features_report.py --all                   # everything in the newest file
     python scripts/features_report.py FILE --from 1794499470 --to 1794499530   # a time range
+
+By default only the latest run is shown: the collector writes a "start" and a "stop" record
+to collector_stats.jsonl, and earlier runs in the same day's file are left out.
 
 Used for integration check T2 (every host, only the hosts, no gaps, no loss) and to eyeball
 attack windows (T3). Standard library only.
@@ -33,15 +36,37 @@ def load(path, t_from=None, t_to=None):
     return rows
 
 
+def latest_run(stats_path):
+    """(start, stop) wall times of the newest collector run, from collector_stats.jsonl; None if unknown."""
+    start = stop = None
+    try:
+        with open(stats_path) as f:
+            for line in f:
+                rec = json.loads(line)
+                if rec.get("event") == "start":
+                    start, stop = rec["ts"], None
+                elif rec.get("event") == "stop" and start is not None:
+                    stop = rec["ts"]
+    except (OSError, ValueError):
+        return None
+    return (start, stop) if start is not None else None
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("file", nargs="?")
     ap.add_argument("--from", dest="t_from", type=float)
     ap.add_argument("--to", dest="t_to", type=float)
+    ap.add_argument("--all", action="store_true", help="every window in the file, not just the latest run")
     args = ap.parse_args()
     path = args.file or max(glob.glob(os.path.join(REPO, "data", "features", "features_*.jsonl")), default=None)
     if not path:
         sys.exit("No features file found in data/features/.")
+    if args.t_from is None and args.t_to is None and not args.all:
+        run = latest_run(os.path.join(os.path.dirname(path), "collector_stats.jsonl"))
+        if run:
+            args.t_from, args.t_to = run
+            print(f"latest collector run (started {run[0]:.0f}); --all shows every run")
     rows = load(path, args.t_from, args.t_to)
     if not rows:
         sys.exit(f"No windows in {path} for that range.")
