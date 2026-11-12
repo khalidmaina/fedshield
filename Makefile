@@ -53,7 +53,8 @@ smoke:
 	else echo "No smoke test yet: it is rebuilt with the FL core in Sprint 5."; fi
 
 testbed-up:
-	mkdir -p testbed/control       # must exist (and be yours) before Docker would create it as root
+	@# control folders must exist and be yours before Docker would create them as root (decision 0009)
+	for r in web db build dev; do for i in 1 2 3; do mkdir -p testbed/control/fs-$$r-$$i; done; done
 	cd testbed && docker compose up -d --build
 
 testbed-down:
