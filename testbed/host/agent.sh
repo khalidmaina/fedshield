@@ -18,6 +18,9 @@
 #
 # Paths can be overridden for tests: ROLE_DIR, ATTACK_DIR, CONTROL_DIR.
 set -u
+# Fixed locale for the agent, the workload and every attack. Under e.g. ru_RU, bash prints
+# $EPOCHREALTIME with a decimal comma (1794496121,986074), which breaks the JSON status lines.
+export LC_ALL=C
 : "${ROLE:?ROLE must be set (web, db, build or dev)}"
 : "${INTENSITY:=1}"
 : "${ROLE_DIR:=/fs/roles}"
