@@ -65,10 +65,23 @@ Then `python scripts/testbed.py log <host>` shows `started` and `finished` with 
 
 Reference result (2026-11-08) is in `docs/decisions/0005-attacks-started-by-in-host-agent.md`.
 
-## T4 — Two-hour stability (Sprint 3, before collection starts)
+## T4 — Pilot session (before the campaign)
 
-Run a full pilot session. Pass: `make testbed-status` still shows 13/13 healthy with no restarts, every host has a
-continuous series of windows, and lost events stay small throughout.
+A full 2-hour run of session 1's schedule, exactly as in `docs/data_protocol.md`, on the collection machine:
+
+```bash
+make testbed-up && make testbed-status             # 13/13 healthy
+make collect DURATION=7500                         # terminal 1
+make session N=1                                   # terminal 2, ~30 s later
+# after both have finished:
+make features-report && make dataset && make dataset-report
+```
+
+Pass: the session summary says `24/24 attacks ran cleanly`; `make testbed-status` still shows 13/13 healthy with no
+restarts; the features report shows 12/12 hosts, no gaps, lost events 0 (or a stated small number); `make dataset`
+reports no hosts with fewer windows than expected and few ambiguous windows (about 2 per attack: its edges);
+`make dataset-report` shows the session's attack windows (about 48 per attack on each host). Then delete the pilot
+data (`rm -r data/features data/labels data/processed`) so session 1 is collected again for real.
 
 ## T5 — The harness adds nothing to the telemetry
 

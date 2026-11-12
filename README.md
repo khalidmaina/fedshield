@@ -19,8 +19,8 @@ tag [`reference-v0`](https://github.com/khalidmaina/fedshield/tree/reference-v0)
 |---|---|---|---|
 | S0 | Project skeleton, CI, docs | `.github/`, `docs/`, `Makefile` | done |
 | S1 | Testbed: 12 hosts, c2-server, 5 attacks, in-host agent | `testbed/`, `fedshield/control.py` | done |
-| S2 | eBPF collector, 19 features, loss and overhead per window | `collector/`, `fedshield/features.py` | in review |
-| S3 | Attack schedule and dataset builder | `scripts/`, `fedshield/data.py` | next |
+| S2 | eBPF collector, 19 features, loss and overhead per window | `collector/`, `fedshield/features.py` | done |
+| S3 | Schedules, session runner, dataset builder | `fedshield/schedule.py`, `session.py`, `dataset.py` | in review |
 | S4 | Detectors: SAE, Isolation Forest, hybrid | `fedshield/models.py` | planned |
 | S5 | FL core, configs, grid runner, smoke test | `fedshield/fl.py`, `configs/` | planned |
 | S6-S11 | Robustness, privacy, RQ4, RQ5, RQ6 | `fedshield/` | planned |
