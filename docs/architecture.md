@@ -17,7 +17,8 @@ flowchart TB
       H["12 hosts: web x3, db x3, build x3, dev x3"]
       C2["c2-server (not monitored)"]
     end
-    S["Attack scheduler<br/>make_schedule / run_schedule"] -->|docker exec, labels.csv| H
+    S["Session runner<br/>make_schedule / run_session"] -->|attack requests to each host's agent| H
+    H -->|start, end, exit code: data/labels/| S
     H -->|kernel events| K["eBPF collector<br/>19 features / 10 s / host"]
     K --> D["Dataset builder<br/>host_windows.csv"]
     S --> D
